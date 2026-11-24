@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LSB Image Steganography in C – Implementation</title>
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--ink:#0f172a;--mut:#5b6577;--line:#e6e9f0;--soft:#f5f7fc;--ac:#3b5bdb;--ac2:#6d4aff;--ok:#12a36b;--bad:#e5484d}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:rgba(255,255,255,.9);backdrop-filter:blur(10px)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-weight:800;letter-spacing:-.02em}.logo span{color:var(--ac)}
+.links{display:flex;gap:22px;font-size:14px;color:var(--mut);font-weight:500;overflow-x:auto}
+.links a:hover{color:var(--ac)}
+@media(max-width:720px){.links{display:none}}
+.hero{padding:84px 0 64px;text-align:center;background:radial-gradient(900px 340px at 50% -80px,#eef2ff,#fff)}
+.pill{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:99px;font-size:13px;font-weight:600;color:var(--ac);background:#fff}
+h1{font-size:clamp(34px,6vw,60px);line-height:1.08;letter-spacing:-.035em;margin:20px auto 16px;max-width:860px;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:640px;margin:0 auto;color:var(--mut);font-size:18px}
+.btns{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{border:0;cursor:pointer;font:600 15px Inter,sans-serif;padding:12px 22px;border-radius:12px;background:var(--ac);color:#fff;box-shadow:0 6px 18px rgba(59,91,219,.25);transition:.15s}
+.btn:hover{transform:translateY(-1px);background:#2f4bc4}.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.team{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:44px}
+.team div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 18px;text-align:left;font-size:14px}
+.team b{display:block}.team small{color:var(--mut)}
+section{padding:68px 0}section.alt{background:var(--soft)}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac)}
+h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.025em;line-height:1.15;margin:8px 0 12px}
+.sub{color:var(--mut);max-width:620px;margin:0 0 32px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card h3{margin:10px 0 6px;font-size:17px;letter-spacing:-.01em}.card p{margin:0;color:var(--mut);font-size:15px}
+.ic{width:42px;height:42px;border-radius:12px;background:#eef2ff;color:var(--ac);display:grid;place-items:center;font-weight:800}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.steps li{counter-increment:s;position:relative;padding:14px 16px 14px 56px;background:#fff;border:1px solid var(--line);border-radius:14px;font-size:15px}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--ac);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.two{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+h4{margin:0 0 12px;font-size:18px}
+.code{background:#fbfcff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tabs{display:flex;gap:4px;padding:10px;border-bottom:1px solid var(--line);background:#fff}
+.tab{border:0;background:none;padding:8px 14px;border-radius:9px;font:600 14px Inter,sans-serif;color:var(--mut);cursor:pointer}
+.tab.on{background:#eef2ff;color:var(--ac)}
+pre{margin:0;padding:20px;overflow-x:auto;font:400 13.5px/1.7 "JetBrains Mono",ui-monospace,Consolas,monospace;color:#1e293b;max-height:520px}
+.k{color:#7c3aed}.t{color:#0e7490}.s{color:#b45309}.c{color:#8a94a6;font-style:italic}.n{color:#2563eb}.f{color:#3b5bdb}
+.demo{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:0 12px 40px rgba(59,91,219,.08)}
+label{font-size:13px;font-weight:600;color:var(--mut);display:block;margin-bottom:6px}
+textarea,input[type=text]{width:100%;font:15px Inter,sans-serif;padding:12px 14px;border:1px solid var(--line);border-radius:12px;resize:vertical;color:var(--ink);background:#fff}
+textarea:focus{outline:2px solid #c7d2fe;border-color:var(--ac)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.file{font-size:13px;color:var(--mut)}
+.imgs{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:20px}
+.imgs figure{margin:0;text-align:center}.imgs canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:var(--soft)}
+figcaption{font-size:13px;color:var(--mut);margin-top:6px;font-weight:500}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:18px}
+.stat{background:var(--soft);border-radius:14px;padding:14px 16px}.stat b{font-size:22px;letter-spacing:-.02em;display:block}.stat span{font-size:12.5px;color:var(--mut)}
+.msg{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px;display:none}
+.msg.ok{display:block;background:#ecfdf5;color:#067a50}.msg.err{display:block;background:#fff1f2;color:#b4232a}
+.out{font-family:"JetBrains Mono",monospace;background:var(--soft);border-radius:12px;padding:14px;margin-top:12px;min-height:50px;word-break:break-word;font-size:14px}
+table{width:100%;border-collapse:collapse;font:12.5px "JetBrains Mono",monospace;margin-top:12px}
+td,th{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:500}
+.hl{background:#fde68a;border-radius:4px;font-weight:700}.bit{background:#c7d2fe;border-radius:4px;font-weight:700}
+.ring{width:128px;height:128px;border-radius:50%;background:conic-gradient(var(--ac) 0 99%,#e8ecf8 0);display:grid;place-items:center;margin:0 auto 14px}
+.ring div{width:100px;height:100px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:28px;font-weight:800}
+.center{text-align:center}
+.lim .ic{background:#fff1f2;color:var(--bad)}.adv .ic{background:#ecfdf5;color:var(--ok)}
+footer{border-top:1px solid var(--line);padding:34px 0;color:var(--mut);font-size:14px;text-align:center}
+</style></head><body>
+<nav><div class="wrap"><a class="logo" href="#top">LSB<span>Stego</span></a>
+<div class="links"><a href="#problem">Problem</a><a href="#method">Method</a><a href="#code">C Code</a><a href="#demo">Live Demo</a><a href="#results">Results</a><a href="#future">Future</a></div></div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+<span class="pill">CSA-0223 · C Programming for Code Builders</span>
+<h1>Image Steganography using the <em>LSB Technique</em> in C</h1>
+<p class="lead">Hide a secret text message inside a 24-bit BMP image so well that nobody can see it’s there, then extract it back, bit for bit.</p>
+<div class="btns"><a class="btn" href="#demo">Try the live demo</a><a class="btn ghost" href="#code">View the C code</a></div>
+<div class="team">
+<div><b>Deepak Kumar A</b><small>192524422</small></div>
+<div><b>Keshavan Kumaar S S</b><small>192524393</small></div>
+<div><b>Guides</b><small>Dr. Gururama Senthil P · Dr. Karpagam V</small></div></div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+<div class="eyebrow">The problem</div><h2>Encryption protects content, not existence</h2>
+<p class="sub">An encrypted file still looks suspicious on a monitored network. Steganography hides the very fact that a message exists.</p>
+<div class="grid">
+<div class="card"><div class="ic">1</div><h3>Encryption’s limitation</h3><p>Ciphertext hides what is said but not that something was said, so it can attract interception or blocking.</p></div>
+<div class="card"><div class="ic">2</div><h3>The need for secrecy</h3><p>A secure method must protect the information and conceal the communication itself.</p></div>
+<div class="card"><div class="ic">3</div><h3>Objective</h3><p>Embed text in 24-bit BMP images with no visible change, then retrieve it exactly.</p></div>
+</div></div></section>
+
+<section class="alt" id="method"><div class="wrap">
+<div class="eyebrow">Method</div><h2>How LSB steganography works</h2>
+<p class="sub">Each pixel byte’s lowest bit is replaced with one bit of the message. Changing a value by at most 1 out of 255 is invisible to the human eye.</p>
+<div class="grid" style="margin-bottom:34px">
+<div class="card"><div class="ic">BMP</div><h3>Why BMP?</h3><p>Raw, uncompressed pixels: no data loss and easy bit-level modification.</p></div>
+<div class="card"><div class="ic">RGB</div><h3>24-bit pixels</h3><p>3 channels × 256 levels = 16,777,216 colours; the LSB of each channel carries one bit.</p></div>
+<div class="card"><div class="ic">=</div><h3>Same file size</h3><p>Bytes are rewritten, never added, so the output file is as large as the original.</p></div>
+<div class="card"><div class="ic">↑</div><h3>Capacity</h3><p>Grows with resolution: roughly one character per 8 pixel bytes.</p></div></div>
+<div class="two">
+<div><h4>Module 1 · Encoding</h4><ol class="steps"><li>Load the BMP once and validate it (24-bit, uncompressed).</li><li>Build the payload: “STG1” marker, length and checksum, then the message bytes.</li><li>Replace the LSB of each pixel byte with the next bit, skipping row padding.</li><li>Write <code>encoded.bmp</code> in a single call. It looks identical.</li></ol></div>
+<div><h4>Module 2 · Decoding</h4><ol class="steps"><li>Load the encoded BMP and find the pixel data offset.</li><li>Read LSBs to rebuild the marker, length and checksum.</li><li>Read <code>length × 8</code> more LSBs and assemble each character.</li><li>Verify the checksum, then print the message.</li></ol></div>
+</div></div></section>
+
+<section id="code"><div class="wrap">
+<div class="eyebrow">Implementation</div><h2>The C implementation</h2>
+<p class="sub">The complete, optimized program. Copy it, or grab the full project as a ZIP (source, Makefile, sample image and this website).</p>
+<div class="code"><div class="tabs"><button class="tab on" data-t="c">src/steg.c</button><button class="tab" data-t="mk">Makefile</button><button class="tab" data-t="run">Build &amp; run</button><button class="tab" id="cp" style="margin-left:auto">Copy</button></div><pre id="src"></pre></div>
+<div class="grid" style="margin-top:26px">
+<div class="card"><div class="ic">⚡</div><h3>Faster I/O</h3><p>One read and one write instead of a byte-by-byte fread/fwrite loop.</p></div>
+<div class="card"><div class="ic">🛡</div><h3>Safer</h3><p>No scanf overflow or fixed 200-char limit; capacity check; every error path frees memory.</p></div>
+<div class="card"><div class="ic">✓</div><h3>Reliable format</h3><p>Real header offset, row padding skipped, “STG1” marker and checksum catch damaged images.</p></div>
+<div class="card"><div class="ic">&gt;_</div><h3>CLI and menu</h3><p>Scriptable commands plus the original Encode / Decode / Exit menu.</p></div></div>
+</div></section>
+
+<section class="alt" id="demo"><div class="wrap">
+<div class="eyebrow">Live demo</div><h2>Hide and reveal a message</h2>
+<p class="sub">This runs the exact same algorithm in your browser. Nothing is uploaded anywhere.</p>
+<div class="demo">
+<label for="m">Secret message (max 200 characters in this demo)</label>
+<textarea id="m" rows="2" maxlength="200">It is a secret!!</textarea>
+<div class="row"><span class="file">Cover image: a sample is loaded.</span>
+<label class="btn ghost" style="margin:0;cursor:pointer;color:var(--ink)">Upload a 24-bit BMP<input id="up" type="file" accept=".bmp,image/bmp" hidden></label>
+<button class="btn" id="enc">Encode message</button></div>
+<div class="msg" id="e1"></div>
+<div class="imgs"><figure><canvas id="c1"></canvas><figcaption>Original (input.bmp)</figcaption></figure><figure><canvas id="c2"></canvas><figcaption>Stego image (encoded.bmp)</figcaption></figure></div>
+<div class="stats" id="stats"></div>
+<div id="trace"></div>
+<div class="row"><button class="btn ghost" id="dl" disabled>Download encoded.bmp</button><button class="btn" id="dec" disabled>Decode message</button>
+<label class="btn ghost" style="margin:0;cursor:pointer;color:var(--ink)">Decode another BMP<input id="up2" type="file" accept=".bmp,image/bmp" hidden></label></div>
+<div class="out" id="out">Hidden message appears here.</div>
+</div></div></section>
+
+<section id="results"><div class="wrap">
+<div class="eyebrow">Results</div><h2>Concealed communication achieved</h2>
+<p class="sub">The system transmits confidential text inside ordinary-looking images and recovers it reliably.</p>
+<div class="grid">
+<div class="card center"><div class="ring"><div>99%</div></div><h3>Data integrity</h3><p>Hidden messages extracted with near-perfect accuracy.</p></div>
+<div class="card center"><div class="ring" style="background:conic-gradient(var(--ac2) 0 100%,#e8ecf8 0)"><div style="font-size:20px">Fast</div></div><h3>Execution speed</h3><p>Efficient encoding and decoding on standard systems.</p></div>
+<div class="card"><h3>Console menu</h3><pre style="padding:12px;background:var(--soft);border-radius:10px;font-size:12px;margin-top:10px">IMAGE STEGANOGRAPHY SYSTEM
+1. Encode Message
+2. Decode Message
+3. Exit</pre></div>
+</div>
+<h2 style="margin-top:54px">Advantages and limitations</h2>
+<div class="grid">
+<div class="card adv"><div class="ic">✓</div><h3>Invisible hiding</h3><p>Undetectable to the eye; image quality is preserved.</p></div>
+<div class="card adv"><div class="ic">✓</div><h3>Simple &amp; light</h3><p>Easy to code in C and runs on basic hardware.</p></div>
+<div class="card lim"><div class="ic">!</div><h3>Format &amp; capacity</h3><p>Breaks with JPEG compression; only small payloads fit.</p></div>
+<div class="card lim"><div class="ic">!</div><h3>Weak security</h3><p>Steganalysis can detect it; resizing or cropping corrupts data.</p></div>
+</div></div></section>
+
+<section class="alt" id="future"><div class="wrap">
+<div class="eyebrow">Future scope</div><h2>Where this can go next</h2><p class="sub"></p>
+<div class="grid">
+<div class="card"><div class="ic">1</div><h3>Multi-format support</h3><p>Read PNG and JPEG using libraries such as OpenCV.</p></div>
+<div class="card"><div class="ic">2</div><h3>Mobile app</h3><p>Ship the system as an Android or iOS application.</p></div>
+<div class="card"><div class="ic">3</div><h3>Strong encryption</h3><p>Encrypt with AES or RSA first, then embed.</p></div>
+<div class="card"><div class="ic">4</div><h3>Cloud communication</h3><p>Integrate with cloud platforms for secure transfer.</p></div>
+</div></div></section>
+
+<footer><div class="wrap">SIMATS Engineering · CSA-0223 C Programming for Code Builders · 02/03/2026</div></footer>
+
+<script>
+const $=s=>document.querySelector(s),H=54;
+const SRC={c:String.raw`/*
+ * steg.c - LSB image steganography for 24-bit BMP files (C99)
+ *
+ * Build : gcc -std=c99 -O2 -Wall -Wextra -o steg src/steg.c
+ * Use   : ./steg encode in.bmp out.bmp "secret"
+ *         ./steg decode out.bmp
+ *         ./steg info   in.bmp
+ *         ./steg                (interactive menu)
+ *
+ * Payload layout, one bit per pixel byte (MSB first):
+ *   "STG1" | length (u32, big endian) | FNV-1a checksum (u32) | message bytes
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+#define MAGIC     "STG1"
+#define HDR_BYTES 12                     /* magic + length + checksum */
+
+typedef struct {
+    uint8_t *d;                          /* whole file, loaded once   */
+    size_t   size, off, rowb, stride, rows;
+} Bmp;
+
+typedef struct { uint8_t *p; size_t col; const Bmp *b; } Cur;
+
+static uint32_t rd32(const uint8_t *p) {
+    return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
+}
+
+static uint32_t fnv1a(const uint8_t *p, size_t n) {
+    uint32_t h = 2166136261u;
+    while (n--) { h ^= *p++; h *= 16777619u; }
+    return h;
+}
+
+/* Load and validate a 24-bit uncompressed BMP. Returns 1 on success. */
+static int bmp_load(const char *path, Bmp *b) {
+    const char *err = NULL;
+    FILE *f = fopen(path, "rb");
+    if (!f) { perror(path); return 0; }
+    b->d = NULL;
+    fseek(f, 0, SEEK_END);
+    long n = ftell(f);
+    rewind(f);
+    if (n < 54) err = "file too small to be a BMP";
+    else if (!(b->d = malloc((size_t)n))) err = "out of memory";
+    else if (fread(b->d, 1, (size_t)n, f) != (size_t)n) err = "read error";
+    fclose(f);
+    if (!err) {
+        const uint8_t *h = b->d;
+        int32_t w = (int32_t)rd32(h + 18), ht = (int32_t)rd32(h + 22);
+        if (ht < 0) ht = -ht;                          /* top-down BMPs */
+        if (h[0] != 'B' || h[1] != 'M')          err = "not a BMP file";
+        else if (h[28] != 24 || rd32(h + 30))    err = "need an uncompressed 24-bit BMP";
+        else if (w <= 0 || ht <= 0)              err = "invalid dimensions";
+        else {
+            b->size = (size_t)n;  b->off = rd32(h + 10);
+            b->rowb = (size_t)w * 3;
+            b->stride = (b->rowb + 3) & ~(size_t)3;   /* rows pad to 4 bytes */
+            b->rows = (size_t)ht;
+            if (b->off < 54 || b->off + b->stride * b->rows > b->size) err = "truncated pixel data";
+        }
+    }
+    if (err) { fprintf(stderr, "%s: %s\n", path, err); free(b->d); return 0; }
+    return 1;
+}
+
+/* Payload capacity in bytes (padding bytes are never touched). */
+static size_t capacity(const Bmp *b) {
+    size_t bytes = b->rowb * b->rows / 8;
+    return bytes > HDR_BYTES ? bytes - HDR_BYTES : 0;
+}
+
+/* Cursor walks pixel bytes row by row, skipping row padding. No division per bit. */
+static void cur_init(Cur *c, const Bmp *b) { c->p = b->d + b->off; c->col = 0; c->b = b; }
+
+static uint8_t *cur_next(Cur *c) {
+    uint8_t *r = c->p;
+    if (++c->col == c->b->rowb) { c->col = 0; c->p += c->b->stride - c->b->rowb + 1; }
+    else c->p++;
+    return r;
+}
+
+static void put_byte(Cur *c, uint8_t v) {
+    for (int i = 7; i >= 0; i--) { uint8_t *p = cur_next(c); *p = (uint8_t)((*p & 0xFE) | ((v >> i) & 1)); }
+}
+static uint8_t get_byte(Cur *c) {
+    uint8_t v = 0;
+    for (int i = 0; i < 8; i++) v = (uint8_t)((v << 1) | (*cur_next(c) & 1));
+    return v;
+}
+static void put32(Cur *c, uint32_t v) { for (int s = 24; s >= 0; s -= 8) put_byte(c, (uint8_t)(v >> s)); }
+static uint32_t get32(Cur *c) { uint32_t v = 0; for (int i = 0; i < 4; i++) v = v << 8 | get_byte(c); return v; }
+
+static int encode(const char *in, const char *out, const char *msg) {
+    Bmp b;
+    if (!bmp_load(in, &b)) return 1;
+    size_t n = strlen(msg), cap = capacity(&b);
+    if (n == 0 || n > cap) {
+        fprintf(stderr, "Message is %zu bytes; this image holds 1..%zu bytes.\n", n, cap);
+        free(b.d); return 1;
+    }
+    Cur c; cur_init(&c, &b);
+    for (int i = 0; i < 4; i++) put_byte(&c, (uint8_t)MAGIC[i]);
+    put32(&c, (uint32_t)n);
+    put32(&c, fnv1a((const uint8_t *)msg, n));
+    for (size_t i = 0; i < n; i++) put_byte(&c, (uint8_t)msg[i]);
+
+    FILE *f = fopen(out, "wb");                    /* one buffered write */
+    int ok = f && fwrite(b.d, 1, b.size, f) == b.size;
+    if (f && fclose(f) != 0) ok = 0;
+    if (!ok) perror(out); else printf("Encoded %zu bytes into %s (capacity %zu).\n", n, out, cap);
+    free(b.d);
+    return ok ? 0 : 1;
+}
+
+static int decode(const char *in) {
+    Bmp b;
+    if (!bmp_load(in, &b)) return 1;
+    int rc = 1;
+    if (capacity(&b) == 0) { fprintf(stderr, "Image too small.\n"); goto done; }
+    Cur c; cur_init(&c, &b);
+    for (int i = 0; i < 4; i++)
+        if (get_byte(&c) != (uint8_t)MAGIC[i]) { fprintf(stderr, "No hidden message found.\n"); goto done; }
+    uint32_t n = get32(&c), sum = get32(&c);
+    if (n == 0 || n > capacity(&b)) { fprintf(stderr, "Corrupt length field.\n"); goto done; }
+    uint8_t *m = malloc((size_t)n + 1);
+    if (!m) { fprintf(stderr, "Out of memory.\n"); goto done; }
+    for (uint32_t i = 0; i < n; i++) m[i] = get_byte(&c);
+    m[n] = '\0';
+    if (fnv1a(m, n) != sum) fprintf(stderr, "Checksum mismatch: the image was altered.\n");
+    else { printf("Hidden message: %s\n", m); rc = 0; }
+    free(m);
+done:
+    free(b.d);
+    return rc;
+}
+
+static int info(const char *in) {
+    Bmp b;
+    if (!bmp_load(in, &b)) return 1;
+    printf("%s: %zu x %zu px, data offset %zu, capacity %zu bytes\n",
+           in, b.rowb / 3, b.rows, b.off, capacity(&b));
+    free(b.d);
+    return 0;
+}
+
+static void ask(const char *prompt, char *buf, size_t n, const char *def) {
+    printf("%s [%s]: ", prompt, def);
+    if (!fgets(buf, (int)n, stdin)) buf[0] = '\0';
+    buf[strcspn(buf, "\r\n")] = '\0';
+    if (!buf[0]) { strncpy(buf, def, n - 1); buf[n - 1] = '\0'; }
+}
+
+static void menu(void) {
+    char line[16], a[256], o[256], m[1024];
+    for (;;) {
+        puts("\n===== IMAGE STEGANOGRAPHY SYSTEM =====\n1. Encode Message\n2. Decode Message\n3. Exit");
+        printf("Enter your choice: ");
+        if (!fgets(line, sizeof line, stdin)) return;
+        switch (atoi(line)) {
+        case 1: ask("Input BMP", a, sizeof a, "input.bmp");
+                ask("Output BMP", o, sizeof o, "encoded.bmp");
+                ask("Message", m, sizeof m, "Hello, steganography!");
+                encode(a, o, m); break;
+        case 2: ask("Stego BMP", a, sizeof a, "encoded.bmp"); decode(a); break;
+        case 3: puts("Exiting Program..."); return;
+        default: puts("Invalid choice!");
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+    if (argc == 1) { menu(); return 0; }
+    if (argc == 5 && !strcmp(argv[1], "encode")) return encode(argv[2], argv[3], argv[4]);
+    if (argc == 3 && !strcmp(argv[1], "decode")) return decode(argv[2]);
+    if (argc == 3 && !strcmp(argv[1], "info"))   return info(argv[2]);
+    fprintf(stderr, "usage: %s encode in.bmp out.bmp \"msg\" | decode in.bmp | info in.bmp\n", argv[0]);
+    return 2;
+}
+`,mk:String.raw`CC     ?= gcc
+CFLAGS ?= -std=c99 -O2 -Wall -Wextra -Wpedantic
+
+steg: src/steg.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+test: steg
+	./steg encode samples/input.bmp /tmp/encoded.bmp "It is a secret!!"
+	./steg decode /tmp/encoded.bmp
+
+clean:
+	rm -f steg
+
+.PHONY: test clean
+`,run:String.raw`# build and run
+make
+make test
+
+# command line
+./steg encode samples/input.bmp encoded.bmp "It is a secret!!"
+./steg decode encoded.bmp
+./steg info samples/input.bmp
+
+# interactive menu
+./steg
+
+# Windows (MinGW)
+gcc -std=c99 -O2 -o steg.exe src/steg.c
+steg.exe decode encoded.bmp
+`};
+function hl(c){
+ const e=c.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+ return e.replace(/(\/\/.*$)|("(?:[^"\\]|\\.)*"|'[^']*')|\b(void|int|char|unsigned|for|while|if|else|return|switch|case|default|do|break|sizeof|struct|static|const|typedef|goto)\b|\b(FILE|NULL|Bmp|Cur|uint8_t|uint32_t|int32_t|size_t)\b|\b(0x[0-9A-Fa-f]+|\d+)\b|\b(\w+)(?=\()/gm,
+ (m,a,b,k,t,n,f)=>a?`<span class="c">${a}</span>`:b?`<span class="s">${b}</span>`:k?`<span class="k">${k}</span>`:t?`<span class="t">${t}</span>`:n?`<span class="n">${n}</span>`:`<span class="f">${f}</span>`);
+}
+let cur="c";function tab(k){cur=k;$("#src").innerHTML=k==="c"?hl(SRC[k]):SRC[k].replace(/&/g,"&amp;").replace(/</g,"&lt;");document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===k))}
+document.querySelectorAll(".tab[data-t]").forEach(b=>b.onclick=()=>tab(b.dataset.t));tab("c");
+$("#cp").onclick=e=>{navigator.clipboard.writeText(SRC[cur]).then(()=>{e.target.textContent="Copied";setTimeout(()=>e.target.textContent="Copy",1400)}).catch(()=>{})};
+
+/* ---- BMP helpers ---- */
+function canvasToBmp(c){
+ const w=c.width,h=c.height,d=c.getContext("2d").getImageData(0,0,w,h).data,rs=(w*3+3)&~3,sz=H+rs*h,b=new Uint8Array(sz),v=new DataView(b.buffer);
+ b[0]=66;b[1]=77;v.setUint32(2,sz,true);v.setUint32(10,H,true);v.setUint32(14,40,true);v.setInt32(18,w,true);v.setInt32(22,h,true);v.setUint16(26,1,true);v.setUint16(28,24,true);v.setUint32(34,rs*h,true);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){const s=((h-1-y)*w+x)*4,o=H+y*rs+x*3;b[o]=d[s+2];b[o+1]=d[s+1];b[o+2]=d[s]}
+ return b;
+}
+function sample(){
+ const c=document.createElement("canvas");c.width=200;c.height=140;const x=c.getContext("2d");
+ const g=x.createLinearGradient(0,0,200,140);g.addColorStop(0,"#ffd6a5");g.addColorStop(.5,"#a5b4fc");g.addColorStop(1,"#6ee7b7");x.fillStyle=g;x.fillRect(0,0,200,140);
+ x.fillStyle="rgba(255,255,255,.55)";x.beginPath();x.arc(60,60,34,0,7);x.fill();
+ x.fillStyle="rgba(59,91,219,.7)";x.beginPath();x.arc(140,80,42,0,7);x.fill();
+ x.fillStyle="rgba(255,255,255,.8)";x.fillRect(20,105,90,14);
+ return canvasToBmp(c);
+}
+function draw(bytes,cv){return new Promise(r=>{const u=URL.createObjectURL(new Blob([bytes],{type:"image/bmp"})),i=new Image();
+ i.onload=()=>{cv.width=i.width;cv.height=i.height;cv.getContext("2d").drawImage(i,0,0);URL.revokeObjectURL(u);r()};i.onerror=()=>r();i.src=u})}
+function valid(b){const v=new DataView(b.buffer);return b[0]===66&&b[1]===77&&v.getUint16(28,true)===24&&v.getUint32(30,true)===0}
+
+function say(id,t,k){const e=$(id);e.className="msg "+(t?k:"");e.textContent=t||""}
+const bin=n=>n.toString(2).padStart(8,"0");
+
+/* ---- Encode / decode (same format as steg.c) ---- */
+const fnv=a=>{let h=0x811c9dc5;for(const x of a){h^=x;h=Math.imul(h,16777619)>>>0}return h>>>0};
+function geo(b){const v=new DataView(b.buffer),rb=v.getInt32(18,true)*3;return{off:v.getUint32(10,true),rb,st:(rb+3)&~3,bits:rb*Math.abs(v.getInt32(22,true))}}
+const slot=(g,i)=>g.off+Math.floor(i/g.rb)*g.st+i%g.rb;
+const cap=b=>Math.max(0,(geo(b).bits>>3)-12);
+function embed(o,bytes){const g=geo(o);let i=0;for(const v of bytes)for(let k=7;k>=0;k--,i++){const p=slot(g,i);o[p]=(o[p]&0xFE)|((v>>k)&1)}}
+function extract(b,from,n){const g=geo(b),r=new Uint8Array(n);let i=from*8;for(let j=0;j<n;j++){let v=0;for(let k=0;k<8;k++,i++)v=(v<<1)|(b[slot(g,i)]&1);r[j]=v}return r}
+function encodeBytes(src,text){const m=new TextEncoder().encode(text),n=m.length,h=fnv(m),o=src.slice();
+ embed(o,[83,84,71,49,n>>>24,n>>>16&255,n>>>8&255,n&255,h>>>24,h>>>16&255,h>>>8&255,h&255,...m]);return o}
+function decodeBytes(b){
+ if(!valid(b)||cap(b)===0)throw Error("Not a valid 24-bit BMP file.");
+ const h=extract(b,0,12),none="No hidden message found in this image.";
+ if(String.fromCharCode(...h.slice(0,4))!=="STG1")throw Error(none);
+ const v=new DataView(h.buffer),n=v.getUint32(4);
+ if(!n||n>cap(b))throw Error(none);
+ const m=extract(b,12,n);
+ if(fnv(m)!==v.getUint32(8))throw Error("Checksum mismatch: the image was altered.");
+ return new TextDecoder().decode(m)}
+
+let cover=sample(),stego=null;
+const c1=$("#c1"),c2=$("#c2");
+draw(cover,c1);
+$("#up").onchange=async e=>{const f=e.target.files[0];if(!f)return;const b=new Uint8Array(await f.arrayBuffer());
+ if(!valid(b)){say("#e1","Please choose an uncompressed 24-bit BMP (like the C program expects).","err");return}
+ cover=b;stego=null;await draw(cover,c1);c2.width=c2.height=1;$("#dl").disabled=$("#dec").disabled=true;$("#stats").innerHTML=$("#trace").innerHTML="";say("#e1","Loaded "+f.name+" · capacity "+cap(b)+" characters.","ok")};
+$("#enc").onclick=async()=>{
+ const t=$("#m").value,n=new TextEncoder().encode(t).length;
+ if(!n){say("#e1","Enter a message first.","err");return}
+ if(n>cap(cover)){say("#e1","Message too large for this image (capacity "+cap(cover)+" bytes).","err");return}
+ stego=encodeBytes(cover,t);await draw(stego,c2);
+ let ch=0,mx=0;for(let i=0;i<cover.length;i++){const d=Math.abs(cover[i]-stego[i]);if(d){ch++;mx=Math.max(mx,d)}}
+ const used=96+n*8;
+ $("#stats").innerHTML=`<div class="stat"><b>${n}</b><span>characters hidden</span></div><div class="stat"><b>${used}</b><span>LSB bits used (96 + ${n}×8)</span></div><div class="stat"><b>${ch}</b><span>bytes actually changed</span></div><div class="stat"><b>±${mx}</b><span>max change per byte</span></div><div class="stat"><b>${cover.length===stego.length?"Equal":"Differs"}</b><span>file size (${stego.length} B)</span></div>`;
+ const ch0=new TextEncoder().encode(t)[0];let rows="";
+ for(let k=0;k<8;k++){const pp=slot(geo(cover),96+k),o=cover[pp],s=stego[pp],bit=(ch0>>(7-k))&1;
+  rows+=`<tr><td>${pp}</td><td>${bin(o).slice(0,7)}<span class="hl">${bin(o)[7]}</span></td><td><span class="bit">${bit}</span></td><td>${bin(s).slice(0,7)}<span class="hl">${bin(s)[7]}</span></td></tr>`}
+ $("#trace").innerHTML=`<h4 style="margin:22px 0 0;font-size:15px">Bit trace for “${t[0]}” (binary ${bin(ch0)})</h4><table><tr><th>byte #</th><th>original</th><th>message bit</th><th>stego</th></tr>${rows}</table>`;
+ $("#dl").disabled=$("#dec").disabled=false;say("#e1","Message successfully encoded into encoded.bmp!","ok");$("#out").textContent="Hidden message appears here.";
+};
+$("#dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([stego],{type:"image/bmp"}));a.download="encoded.bmp";a.click()};
+$("#dec").onclick=()=>{try{$("#out").textContent="Hidden message: "+decodeBytes(stego)}catch(e){$("#out").textContent=e.message}};
+$("#up2").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{$("#out").textContent="Hidden message: "+decodeBytes(new Uint8Array(await f.arrayBuffer()))}catch(x){$("#out").textContent=x.message}};
+</script></body></html>
